@@ -4,6 +4,7 @@ Caches a base SDXL checkpoint and applies LoRA per request.
 """
 
 import base64
+import importlib.metadata
 import logging
 import os
 import sys
@@ -37,9 +38,14 @@ def verify_imports() -> bool:
         import diffusers
         import safetensors
 
+        try:
+            runpod_version = importlib.metadata.version("runpod")
+        except Exception:
+            runpod_version = getattr(runpod, "__version__", "unknown")
+
         logger.info("torch=%s", torch.__version__)
         logger.info("diffusers=%s", diffusers.__version__)
-        logger.info("runpod=%s", runpod.__version__)
+        logger.info("runpod=%s", runpod_version)
         logger.info("safetensors=%s", safetensors.__version__)
         logger.info("cuda_available=%s", torch.cuda.is_available())
         if torch.cuda.is_available():
