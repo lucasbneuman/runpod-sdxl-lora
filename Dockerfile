@@ -7,6 +7,7 @@ FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 RUN apt-get update && apt-get install -y \
     python3.10 \
     python3-pip \
+    python3.10-venv \
     python-is-python3 \
     git \
     wget \
@@ -16,8 +17,10 @@ WORKDIR /app
 
 # Copy and install Python dependencies
 COPY requirements.txt .
-RUN python -m pip install --upgrade pip setuptools wheel && \
-    python -m pip install --no-cache-dir -r requirements.txt
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/python -m pip install --upgrade pip setuptools wheel && \
+    /opt/venv/bin/python -m pip install --no-cache-dir -r requirements.txt
+ENV PATH="/opt/venv/bin:${PATH}"
 
 # Copy handler
 COPY rp_handler.py .
