@@ -1,15 +1,33 @@
-FROM runpod/base:0.6.3-cuda11.8.0
+# RunPod Serverless SDXL + LoRA Worker
+# Optimized for 24GB VRAM GPUs (L40S, A5000, 3090, etc.)
 
-# Set python3.11 as the default python
-RUN ln -sf $(which python3.11) /usr/local/bin/python && \
-    ln -sf $(which python3.11) /usr/local/bin/python3
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
-# Install dependencies
-COPY requirements.txt /requirements.txt
-RUN uv pip install --upgrade -r /requirements.txt --no-cache-dir --system
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-# Add files
-ADD handler.py .
+WORKDIR /app
 
-# Run the handler
-CMD python -u /handler.py
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy handler
+COPY rp_handler.py .
+
+# Environment variables for model
+# Override MODEL_ID in RunPod console to use different checkpoints
+ENV MODEL_ID=stabilityai/stable-diffusion-xl-base-1.0
+ENV CUDA_VISIBLE_DEVICES=0
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=600s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Start handler
+CMD ["python", "-u", "rp_handler.py"]

@@ -1,3 +1,20 @@
-# Required Python packages get listed here, one per line.
+# RunPod SDXL LoRA Worker Dependencies
+# Pin versions for reproducibility and CUDA compatibility
 
-runpod~=1.7.9
+# Core ML inference
+torch==2.1.2
+torchvision==0.16.2
+transformers==4.36.2
+diffusers==0.25.1
+accelerate==0.25.0
+safetensors==0.4.1
+peft==0.7.1
+
+# RunPod
+runpod==0.10.6
+
+# HTTP client for presigned URL downloads
+requests==2.31.0
+
+# Optional: for enhanced performance
+xformers==0.0.23  # Memory-efficient attention (optional, requires compilation)
