@@ -14,7 +14,6 @@ from typing import Any, Dict, Optional
 
 import requests
 import runpod
-import torch
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,10 +24,26 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MODEL_ID = os.environ.get("MODEL_ID", "stabilityai/stable-diffusion-xl-base-1.0")
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-DTYPE = torch.float16 if DEVICE == "cuda" else torch.float32
-
 pipe: Optional[Any] = None
+torch_mod: Optional[Any] = None
+
+
+def get_torch() -> Any:
+    """Lazy-import torch to keep startup fast and resilient."""
+    global torch_mod
+    if torch_mod is None:
+        import torch as _torch
+
+        torch_mod = _torch
+    return torch_mod
+
+
+def get_device_dtype() -> Any:
+    """Resolve execution device and dtype lazily."""
+    torch = get_torch()
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if device == "cuda" else torch.float32
+    return device, dtype
 
 
 def verify_imports() -> bool:
@@ -42,6 +57,7 @@ def verify_imports() -> bool:
         except Exception:
             runpod_version = getattr(runpod, "__version__", "unknown")
 
+        torch = get_torch()
         logger.info("torch=%s", torch.__version__)
         logger.info("diffusers=%s", diffusers.__version__)
         logger.info("runpod=%s", runpod_version)
@@ -67,15 +83,16 @@ def load_pipeline() -> Any:
         logger.info("Pipeline already cached")
         return pipe
 
+    device, dtype = get_device_dtype()
     from diffusers import StableDiffusionXLPipeline
 
     logger.info("Loading base model: %s", MODEL_ID)
     pipe = StableDiffusionXLPipeline.from_pretrained(
         MODEL_ID,
-        torch_dtype=DTYPE,
+        torch_dtype=dtype,
         use_safetensors=True,
-    ).to(DEVICE)
-    logger.info("Model loaded on device=%s dtype=%s", DEVICE, DTYPE)
+    ).to(device)
+    logger.info("Model loaded on device=%s dtype=%s", device, dtype)
     return pipe
 
 
@@ -190,7 +207,9 @@ def handler(job: Dict[str, Any]) -> Dict[str, Any]:
 
         generator = None
         if seed is not None:
-            generator = torch.Generator(device=DEVICE).manual_seed(int(seed))
+            torch = get_torch()
+            device, _ = get_device_dtype()
+            generator = torch.Generator(device=device).manual_seed(int(seed))
 
         image = pipe(
             prompt=prompt,
