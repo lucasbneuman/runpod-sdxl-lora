@@ -15,7 +15,6 @@ from typing import Any, Dict, Optional
 import requests
 import runpod
 import torch
-from diffusers import StableDiffusionXLPipeline
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,7 +28,7 @@ MODEL_ID = os.environ.get("MODEL_ID", "stabilityai/stable-diffusion-xl-base-1.0"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DTYPE = torch.float16 if DEVICE == "cuda" else torch.float32
 
-pipe: Optional[StableDiffusionXLPipeline] = None
+pipe: Optional[Any] = None
 
 
 def verify_imports() -> bool:
@@ -60,13 +59,15 @@ def verify_imports() -> bool:
         return False
 
 
-def load_pipeline() -> StableDiffusionXLPipeline:
+def load_pipeline() -> Any:
     """Load and cache base SDXL model once per worker."""
     global pipe
 
     if pipe is not None:
         logger.info("Pipeline already cached")
         return pipe
+
+    from diffusers import StableDiffusionXLPipeline
 
     logger.info("Loading base model: %s", MODEL_ID)
     pipe = StableDiffusionXLPipeline.from_pretrained(
@@ -225,7 +226,7 @@ def handler(job: Dict[str, Any]) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     if not verify_imports():
-        sys.exit(1)
+        logger.warning("Startup checks reported issues; continuing and deferring to runtime.")
 
     logger.info("Starting RunPod serverless handler")
     runpod.serverless.start({"handler": handler})

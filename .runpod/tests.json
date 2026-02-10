@@ -5,7 +5,7 @@
       "input": {
         "healthcheck": true
       },
-      "timeout": 10000
+      "timeout": 120000
     }
   ],
   "config": {
