@@ -4,7 +4,6 @@ Caches a base SDXL checkpoint and applies LoRA per request.
 """
 
 import base64
-import importlib.metadata
 import logging
 import os
 import sys
@@ -44,35 +43,6 @@ def get_device_dtype() -> Any:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.float16 if device == "cuda" else torch.float32
     return device, dtype
-
-
-def verify_imports() -> bool:
-    """Verify critical runtime imports and print versions."""
-    try:
-        import diffusers
-        import safetensors
-
-        try:
-            runpod_version = importlib.metadata.version("runpod")
-        except Exception:
-            runpod_version = getattr(runpod, "__version__", "unknown")
-
-        torch = get_torch()
-        logger.info("torch=%s", torch.__version__)
-        logger.info("diffusers=%s", diffusers.__version__)
-        logger.info("runpod=%s", runpod_version)
-        logger.info("safetensors=%s", safetensors.__version__)
-        logger.info("cuda_available=%s", torch.cuda.is_available())
-        if torch.cuda.is_available():
-            logger.info("cuda_device=%s", torch.cuda.get_device_name(0))
-            logger.info(
-                "cuda_vram_gb=%.1f",
-                torch.cuda.get_device_properties(0).total_memory / 1e9,
-            )
-        return True
-    except Exception as exc:
-        logger.exception("Startup import verification failed: %s", exc)
-        return False
 
 
 def load_pipeline() -> Any:
@@ -244,8 +214,5 @@ def handler(job: Dict[str, Any]) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    if not verify_imports():
-        logger.warning("Startup checks reported issues; continuing and deferring to runtime.")
-
     logger.info("Starting RunPod serverless handler")
     runpod.serverless.start({"handler": handler})
