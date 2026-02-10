@@ -27,8 +27,5 @@ COPY rp_handler.py .
 ENV MODEL_ID=stabilityai/stable-diffusion-xl-base-1.0
 ENV CUDA_VISIBLE_DEVICES=0
 
-# Optional HF token for gated/private models
-ENV HUGGINGFACE_HUB_TOKEN=
-
 # Start handler
 CMD ["python", "-u", "rp_handler.py"]

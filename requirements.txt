@@ -1,14 +1,13 @@
 # RunPod SDXL LoRA Worker Dependencies
-# Pinned to a known-compatible stack for SDXL + dynamic LoRA loading.
+# Keep a single compatible family; avoid pinning huggingface-hub manually.
 
-torch==2.0.1
-torchvision==0.15.2
-transformers==4.34.1
-diffusers==0.24.0
-accelerate==0.24.0
-safetensors==0.4.0
-peft==0.7.0
+torch==2.1.2
+torchvision==0.16.2
+transformers==4.36.2
+diffusers==0.25.1
+accelerate==0.25.0
+safetensors==0.4.1
+peft==0.7.1
 runpod==0.10.6
 requests==2.31.0
 Pillow==10.1.0
-huggingface-hub==0.17.3
