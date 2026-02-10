@@ -3,7 +3,7 @@
     {
       "name": "basic_test",
       "input": {
-        "name": "John Doe"
+        "healthcheck": true
       },
       "timeout": 10000
     }

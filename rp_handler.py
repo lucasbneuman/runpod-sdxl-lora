@@ -148,11 +148,21 @@ def handler(job: Dict[str, Any]) -> Dict[str, Any]:
         inp = job.get("input", {})
         logger.info("Processing job id=%s", job_id)
 
+        # Fast path for deployment tests / liveness checks.
+        if bool(inp.get("healthcheck")):
+            return {
+                "status": "ok",
+                "model_cached": pipe is not None,
+            }
+
         pipe = load_pipeline()
 
         prompt = str(inp.get("prompt", "")).strip()
         if not prompt:
-            return {"error": "Missing required field: prompt"}
+            return {
+                "status": "invalid_input",
+                "message": "Missing required field: prompt",
+            }
 
         negative_prompt = str(inp.get("negative_prompt", ""))
         steps = int(inp.get("steps", 28))
