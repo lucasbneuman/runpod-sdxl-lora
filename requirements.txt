@@ -8,7 +8,7 @@ diffusers==0.25.1
 accelerate==0.25.0
 safetensors==0.4.1
 peft==0.7.1
-runpod==1.8.1
+runpod~=1.7.6
 requests==2.31.0
 Pillow==10.1.0
 numpy==1.26.4

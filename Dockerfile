@@ -29,6 +29,8 @@ COPY rp_handler.py .
 # Override MODEL_ID in RunPod console to use different checkpoints
 ENV MODEL_ID=stabilityai/stable-diffusion-xl-base-1.0
 ENV CUDA_VISIBLE_DEVICES=0
+ENV RUNPOD_GQL_API_URL=https://api.runpod.io/graphql
+ENV GIN_MODE=release
 
 # Start handler
 CMD ["python", "-u", "rp_handler.py"]
